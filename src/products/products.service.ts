@@ -18,27 +18,35 @@ export class ProductsService {
   ) {}
 
   async create(dto: CreateProductDto) {
-    let category = null;
+    let category: Category | null = null;
     if (dto.categoryId) {
       category = await this.catRepo.findOne({ where: { id: dto.categoryId } });
       if (!category) throw new BadRequestException('Invalid category');
     }
-    const product = this.repo.create({ ...dto, category });
+
+    const product = this.repo.create({
+      ...dto,
+      category: category ?? undefined, // ✅ null გავუშვით undefined-ზე
+    });
+
     return this.repo.save(product);
   }
 
   findAll() {
-    return this.repo.find();
+    return this.repo.find({ relations: ['category'] });
   }
 
   async findOne(id: number) {
-    const p = await this.repo.findOne({ where: { id } });
+    const p = await this.repo.findOne({
+      where: { id },
+      relations: ['category'],
+    });
     if (!p) throw new NotFoundException('Product not found');
     return p;
   }
 
   async update(id: number, dto: UpdateProductDto) {
-    let category = undefined;
+    let category: Category | null | undefined = undefined;
     if (dto.categoryId !== undefined) {
       category = dto.categoryId
         ? await this.catRepo.findOne({ where: { id: dto.categoryId } })
@@ -46,8 +54,10 @@ export class ProductsService {
       if (dto.categoryId && !category)
         throw new BadRequestException('Invalid category');
     }
+
     const updateData: any = { ...dto };
-    if (category !== undefined) updateData.category = category;
+    if (category !== undefined) updateData.category = category ?? undefined;
+
     await this.repo.update(id, updateData);
     return this.findOne(id);
   }

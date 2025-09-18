@@ -1,15 +1,7 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { Category } from '../categories/category.entity';
-import { OrderItem } from '../orders/order-item.entity';
 
-@Entity('products')
+@Entity()
 export class Product {
   @PrimaryGeneratedColumn()
   id: number;
@@ -17,24 +9,17 @@ export class Product {
   @Column()
   name: string;
 
-  @Column({ nullable: true })
-  description: string;
-
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('decimal')
   price: number;
 
-  @Column()
+  @Column({ nullable: true })
+  description?: string;
+
+  @Column({ default: 0 }) // ✅ აქ დავამატე მარაგის ველი
   stock: number;
 
   @ManyToOne(() => Category, (category) => category.products, {
     nullable: true,
-    eager: true,
   })
-  category: Category;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
+  category: Category | null;
 }
